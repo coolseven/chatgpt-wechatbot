@@ -78,22 +78,74 @@ func (h *UserMessageHandler) ReplyText() error {
 	}
 	logger.Info(fmt.Sprintf("h.sender.NickName == %+v", h.sender.NickName))
 	// 2.向GPT发起请求，如果回复文本等于空,不回复
-	reply, err = gpt.Completions(h.getRequestText())
-	if err != nil {
-		// 2.1 将GPT请求失败信息输出给用户，省得整天来问又不知道日志在哪里。
-		errMsg := fmt.Sprintf("gpt request error: %v", err)
-		_, err = h.msg.ReplyText(errMsg)
+
+	imageKeyWords := []string{
+		"图片", "image",
+	}
+
+	imageWanted := false
+	for _, imageKeyWord := range imageKeyWords {
+		if strings.Contains(h.getRequestText(), imageKeyWord) {
+			imageWanted = true
+		}
+	}
+
+	if imageWanted {
+		//imageUrls, err := gpt.CreateImage(h.getRequestText())
+		//if err != nil {
+		//	// 2.1 将GPT请求失败信息输出给用户，省得整天来问又不知道日志在哪里。
+		//	errMsg := fmt.Sprintf("gpt request error: %v", err)
+		//	_, err = h.msg.ReplyText(errMsg)
+		//	if err != nil {
+		//		return errors.New(fmt.Sprintf("response user error: %v ", err))
+		//	}
+		//	return err
+		//}
+		//for _, imageUrl := range imageUrls {
+		//	// 2.设置上下文，回复用户
+		//	//h.service.SetUserSessionContext(requestText, reply)
+		//	_, err = h.msg.ReplyText(buildUserReply(imageUrl))
+		//	if err != nil {
+		//		return errors.New(fmt.Sprintf("response user error: %v ", err))
+		//	}
+		//}
+
+		imageFiles, err := gpt.CreateImageMedia(h.getRequestText())
+		if err != nil {
+			// 2.1 将GPT请求失败信息输出给用户，省得整天来问又不知道日志在哪里。
+			errMsg := fmt.Sprintf("gpt request error: %v", err)
+			_, err = h.msg.ReplyText(errMsg)
+			if err != nil {
+				return errors.New(fmt.Sprintf("response user error: %v ", err))
+			}
+			return err
+		}
+		for _, imageFile := range imageFiles {
+			// 2.设置上下文，回复用户
+			//h.service.SetUserSessionContext(requestText, reply)
+			_, err = h.msg.ReplyImage(imageFile)
+			if err != nil {
+				return errors.New(fmt.Sprintf("response user error: %v ", err))
+			}
+		}
+	} else {
+		reply, err = gpt.Completions(h.getRequestText())
+		if err != nil {
+			// 2.1 将GPT请求失败信息输出给用户，省得整天来问又不知道日志在哪里。
+			errMsg := fmt.Sprintf("gpt request error: %v", err)
+			_, err = h.msg.ReplyText(errMsg)
+			if err != nil {
+				return errors.New(fmt.Sprintf("response user error: %v ", err))
+			}
+			return err
+		}
+
+		// 2.设置上下文，回复用户
+		h.service.SetUserSessionContext(requestText, reply)
+		_, err = h.msg.ReplyText(buildUserReply(reply))
 		if err != nil {
 			return errors.New(fmt.Sprintf("response user error: %v ", err))
 		}
-		return err
-	}
-
-	// 2.设置上下文，回复用户
-	h.service.SetUserSessionContext(requestText, reply)
-	_, err = h.msg.ReplyText(buildUserReply(reply))
-	if err != nil {
-		return errors.New(fmt.Sprintf("response user error: %v ", err))
 	}
 
 	// 3.返回错误

@@ -2,14 +2,18 @@ package gpt
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/coolseven/wechatbot-chatgpt/config"
 	"github.com/coolseven/wechatbot-chatgpt/pkg/logger"
+	gogpt "github.com/sashabaranov/go-gpt3"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -48,7 +52,7 @@ type ChatGPTRequestBody struct {
 //-H "Content-Type: application/json"
 //-H "Authorization: Bearer your chatGPT key"
 //-d '{"model": "text-davinci-003", "prompt": "give me good song", "temperature": 0, "max_tokens": 7}'
-func Completions(msg string) (string, error) {
+func CompletionsDeprecated(msg string) (string, error) {
 	cfg := config.LoadConfig()
 	requestBody := ChatGPTRequestBody{
 		Model:            cfg.Model,
@@ -102,4 +106,102 @@ func Completions(msg string) (string, error) {
 	}
 	logger.Info(fmt.Sprintf("gpt response text: %s ", reply))
 	return reply, nil
+}
+
+func Completions(input string) (string, error) {
+	cfg := config.LoadConfig()
+
+	c := gogpt.NewClient(cfg.ApiKey)
+	ctx := context.Background()
+
+	req := gogpt.CompletionRequest{
+		Model:            gogpt.GPT3TextDavinci003,
+		MaxTokens:        int(cfg.MaxTokens),
+		Prompt:           input,
+		Temperature:      float32(cfg.Temperature),
+		TopP:             1,
+		FrequencyPenalty: 0,
+		PresencePenalty:  0,
+	}
+	resp, err := c.CreateCompletion(ctx, req)
+	if err != nil {
+		return "", errors.New(fmt.Sprintf("请求GTP出错了，gpt api err: %v ", err))
+	}
+	responseBodyString, _ := json.Marshal(resp)
+	logger.Info(fmt.Sprintf("response gpt json string : %s", string(responseBodyString)))
+
+	return resp.Choices[0].Text, nil
+}
+
+func CreateImage(input string) ([]string, error) {
+	cfg := config.LoadConfig()
+
+	c := gogpt.NewClient(cfg.ApiKey)
+	ctx := context.Background()
+
+	req := gogpt.ImageRequest{
+		Prompt:         input,
+		N:              2,
+		Size:           gogpt.CreateImageSize512x512,
+		ResponseFormat: gogpt.CreateImageResponseFormatURL,
+		User:           "",
+	}
+	resp, err := c.CreateImage(ctx, req)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("请求GTP出错了，gpt api err: %v ", err))
+	}
+	//responseBodyString, _ := json.Marshal(resp)
+	//logger.Info(fmt.Sprintf("response gpt json string : %s", string(responseBodyString)))
+	var imageUrls []string
+	for _, dataInner := range resp.Data {
+		//// 将图片base64到本地临时文件中
+		//dir, _ := os.Getwd() // 在服务器上是 pod 根目录 (/) , 在本机上是代码根目录
+		//f, _ := ioutil.TempFile(dir, "debugging-"+"*.png")
+		////localTempFile := f.Name()
+		//_, err = f.WriteString(dataInner.B64JSON)
+		//fmt.Println(f.Name())
+		//fmt.Println("-----------")
+
+		fmt.Println("-----------")
+		fmt.Println(dataInner.URL)
+		imageUrls = append(imageUrls, dataInner.URL)
+	}
+
+	return imageUrls, nil
+}
+
+func CreateImageMedia(input string) ([]io.Reader, error) {
+	cfg := config.LoadConfig()
+
+	c := gogpt.NewClient(cfg.ApiKey)
+	ctx := context.Background()
+
+	req := gogpt.ImageRequest{
+		Prompt:         input,
+		N:              2,
+		Size:           gogpt.CreateImageSize512x512,
+		ResponseFormat: gogpt.CreateImageResponseFormatB64JSON,
+		User:           "",
+	}
+	resp, err := c.CreateImage(ctx, req)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("请求GTP出错了，gpt api err: %v ", err))
+	}
+
+	var localImageFiles []io.Reader
+	for _, dataInner := range resp.Data {
+		// 将图片base64到本地临时文件中
+		dir, _ := os.Getwd() // 在服务器上是 pod 根目录 (/) , 在本机上是代码根目录
+		f, _ := ioutil.TempFile(dir, "debugging-"+"*.png")
+		//localTempFile := f.Name()
+		_, err = f.WriteString("data:image/png;base64," + dataInner.B64JSON)
+		fmt.Println(f.Name())
+		fmt.Println("-----------")
+		err = f.Sync()
+		_, err = f.Seek(0, 0)
+
+		localImageFiles = append(localImageFiles, f)
+	}
+
+	return localImageFiles, err
 }
