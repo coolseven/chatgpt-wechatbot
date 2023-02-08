@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/qingconglaixueit/wechatbot/config"
-	"github.com/qingconglaixueit/wechatbot/pkg/logger"
+	"github.com/coolseven/wechatbot-chatgpt/config"
+	"github.com/coolseven/wechatbot-chatgpt/pkg/logger"
 	"github.com/eatmoreapple/openwechat"
 	"github.com/patrickmn/go-cache"
 	"github.com/skip2/go-qrcode"
@@ -67,5 +67,6 @@ func NewHandler() (msgFunc func(msg *openwechat.Message), err error) {
 	dispatcher.RegisterHandler(func(message *openwechat.Message) bool {
 		return !(strings.Contains(message.Content, config.LoadConfig().SessionClearToken) || message.IsSendByGroup() || message.IsFriendAdd())
 	}, UserMessageContextHandler())
-	return openwechat.DispatchMessage(dispatcher), nil
+
+	return dispatcher.AsMessageHandler(), nil
 }

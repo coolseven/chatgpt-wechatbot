@@ -3,11 +3,11 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"github.com/coolseven/wechatbot-chatgpt/config"
+	"github.com/coolseven/wechatbot-chatgpt/gpt"
+	"github.com/coolseven/wechatbot-chatgpt/pkg/logger"
+	"github.com/coolseven/wechatbot-chatgpt/service"
 	"github.com/eatmoreapple/openwechat"
-	"github.com/qingconglaixueit/wechatbot/config"
-	"github.com/qingconglaixueit/wechatbot/gpt"
-	"github.com/qingconglaixueit/wechatbot/pkg/logger"
-	"github.com/qingconglaixueit/wechatbot/service"
 	"strings"
 )
 

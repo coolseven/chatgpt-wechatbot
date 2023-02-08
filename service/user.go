@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/qingconglaixueit/wechatbot/config"
+	"github.com/coolseven/wechatbot-chatgpt/config"
 	"github.com/eatmoreapple/openwechat"
 	"github.com/patrickmn/go-cache"
 	"time"

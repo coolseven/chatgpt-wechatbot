@@ -3,10 +3,10 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"github.com/coolseven/wechatbot-chatgpt/gpt"
+	"github.com/coolseven/wechatbot-chatgpt/pkg/logger"
+	"github.com/coolseven/wechatbot-chatgpt/service"
 	"github.com/eatmoreapple/openwechat"
-	"github.com/qingconglaixueit/wechatbot/gpt"
-	"github.com/qingconglaixueit/wechatbot/pkg/logger"
-	"github.com/qingconglaixueit/wechatbot/service"
 	"strings"
 )
 
@@ -58,7 +58,7 @@ func NewGroupMessageHandler(msg *openwechat.Message) (MessageHandlerInterface, e
 
 	userService := service.NewUserService(c, groupSender)
 	handler := &GroupMessageHandler{
-		self:    sender.Self,
+		self:    sender.Self(),
 		msg:     msg,
 		group:   group,
 		sender:  groupSender,

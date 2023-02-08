@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/qingconglaixueit/wechatbot/pkg/logger"
-	"github.com/qingconglaixueit/wechatbot/service"
+	"github.com/coolseven/wechatbot-chatgpt/pkg/logger"
+	"github.com/coolseven/wechatbot-chatgpt/service"
 	"github.com/eatmoreapple/openwechat"
 )
 
