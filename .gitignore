@@ -19,3 +19,4 @@ storage.json
 # vendor/
 /config.json
 vendor/
+/vendor/
