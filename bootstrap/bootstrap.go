@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"fmt"
+	"github.com/coolseven/wechatbot-chatgpt/config"
 	"github.com/coolseven/wechatbot-chatgpt/handlers"
 	"github.com/coolseven/wechatbot-chatgpt/pkg/logger"
 	"github.com/eatmoreapple/openwechat"
@@ -28,6 +29,9 @@ func Run() {
 	defer func(reloadStorage io.ReadWriteCloser) {
 		_ = reloadStorage.Close()
 	}(reloadStorage)
+
+	// 设置设备id
+	bot.SetDeviceId(config.LoadConfig().DeviceId)
 
 	// 登录模式的区别: https://openwechat.readthedocs.io/zh/latest/bot.html
 
