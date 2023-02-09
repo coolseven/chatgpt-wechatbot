@@ -79,38 +79,67 @@ func (h *UserMessageHandler) ReplyText() error {
 	logger.Info(fmt.Sprintf("h.sender.NickName == %+v", h.sender.NickName))
 	// 2.向GPT发起请求，如果回复文本等于空,不回复
 
-	imageKeyWords := []string{
-		"图片", "image",
+	imageModeTriggers := []string{
+		"生成图片", "生成一张图片", "生成1张图片",
+		"生成两张图片", "生成2张图片",
+		"生成三张图片", "生成3张图片",
+		"再来一张", "再来1张",
+		"再来两张", "再来2张",
+		"再来三张", "再来3张",
 	}
 
+	imageDescription := ""
 	imageWanted := false
-	for _, imageKeyWord := range imageKeyWords {
-		if strings.Contains(h.getRequestText(), imageKeyWord) {
+	imageCount := 1
+	for _, imageModeTrigger := range imageModeTriggers {
+		if strings.Contains(h.msg.Content, imageModeTrigger) {
 			imageWanted = true
+			switch imageModeTrigger {
+			case "生成图片", "生成一张图片", "生成1张图片":
+				imageCount = 1
+				imageDescription = strings.TrimPrefix(h.msg.Content, imageModeTrigger)
+				h.service.SetUserSessionContext(imageDescription, "")
+			case "生成两张图片", "生成2张图片":
+				imageCount = 2
+				imageDescription = strings.TrimPrefix(h.msg.Content, imageModeTrigger)
+				h.service.SetUserSessionContext(imageDescription, "")
+			case "生成三张图片", "生成3张图片":
+				imageCount = 3
+				imageDescription = strings.TrimPrefix(h.msg.Content, imageModeTrigger)
+				h.service.SetUserSessionContext(imageDescription, "")
+			case "再来一张", "再来1张":
+				previousImageDescription := h.service.GetUserSessionContext()
+				if previousImageDescription == "" {
+					imageWanted = false
+					break
+				} else {
+					imageCount = 1
+					imageDescription = previousImageDescription
+				}
+			case "再来两张", "再来2张":
+				previousImageDescription := h.service.GetUserSessionContext()
+				if previousImageDescription == "" {
+					imageWanted = false
+					break
+				} else {
+					imageCount = 2
+					imageDescription = previousImageDescription
+				}
+			case "再来三张", "再来3张":
+				previousImageDescription := h.service.GetUserSessionContext()
+				if previousImageDescription == "" {
+					imageWanted = false
+					break
+				} else {
+					imageCount = 3
+					imageDescription = previousImageDescription
+				}
+			}
 		}
 	}
 
 	if imageWanted {
-		//imageUrls, err := gpt.CreateImage(h.getRequestText())
-		//if err != nil {
-		//	// 2.1 将GPT请求失败信息输出给用户，省得整天来问又不知道日志在哪里。
-		//	errMsg := fmt.Sprintf("gpt request error: %v", err)
-		//	_, err = h.msg.ReplyText(errMsg)
-		//	if err != nil {
-		//		return errors.New(fmt.Sprintf("response user error: %v ", err))
-		//	}
-		//	return err
-		//}
-		//for _, imageUrl := range imageUrls {
-		//	// 2.设置上下文，回复用户
-		//	//h.service.SetUserSessionContext(requestText, reply)
-		//	_, err = h.msg.ReplyText(buildUserReply(imageUrl))
-		//	if err != nil {
-		//		return errors.New(fmt.Sprintf("response user error: %v ", err))
-		//	}
-		//}
-
-		imageFiles, err := gpt.CreateImageMedia(h.getRequestText())
+		imageFiles, err := gpt.CreateImageMedia(imageDescription, imageCount)
 		if err != nil {
 			// 2.1 将GPT请求失败信息输出给用户，省得整天来问又不知道日志在哪里。
 			errMsg := fmt.Sprintf("gpt request error: %v", err)
@@ -122,9 +151,9 @@ func (h *UserMessageHandler) ReplyText() error {
 		}
 		for _, imageFile := range imageFiles {
 			// 2.设置上下文，回复用户
-			//h.service.SetUserSessionContext(requestText, reply)
 			_, err = h.msg.ReplyImage(imageFile)
 			if err != nil {
+				_, _ = h.msg.ReplyText("[reply image error]: " + err.Error())
 				return errors.New(fmt.Sprintf("response user error: %v ", err))
 			}
 		}
