@@ -72,7 +72,7 @@ func (c WechatNotifyHttpClient) do(ctx context.Context, method, path string, par
 		respStr, _ = httputil.DumpResponse(resp, true)
 	}
 
-	logger.Info(ctx, "WechatNotifyHttpClient - 调用企业微信通知接口结束 \r\nrequest:\n%s\r\n%s\r\nresponse:\r\n%s", reqStr, jsonBodyString, respStr)
+	logger.Info(fmt.Sprintf("WechatNotifyHttpClient - 调用企业微信通知接口结束 \r\nrequest:\n%s\r\n%s\r\nresponse:\r\n%s", reqStr, jsonBodyString, respStr))
 
 	if err != nil {
 		return nil, err
