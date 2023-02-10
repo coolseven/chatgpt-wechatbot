@@ -45,6 +45,8 @@ func Run() {
 	//	return
 	//}
 
+	logger.Info("login in...")
+
 	// 执行免扫码登录
 	err = bot.PushLogin(reloadStorage, openwechat.NewRetryLoginOption())
 	if err != nil {
@@ -74,6 +76,19 @@ func Run() {
 		}
 	}()
 
+	// 服务启动成功通知
+	wechatWorkClient := wechat_notify_http_client.NewWechatNotifyHttpClient(config.LoadConfig().WechatWorkSendKey)
+	err = wechatWorkClient.SendNotifyAsPlainText(context.Background(), "coolseven@aliyun, wechat-gpt has started!")
+	if err != nil {
+		logger.Info("调用企业微信告警失败", err.Error())
+	}
+	
 	// 阻塞主goroutine, 直到发生异常或者用户主动退出
+	logger.Info("service started...")
 	bot.Block()
+
+	err = wechatWorkClient.SendNotifyAsPlainText(context.Background(), "coolseven@aliyun, wechat-gpt is dead!")
+	if err != nil {
+		logger.Info("调用企业微信告警失败", err.Error())
+	}
 }
