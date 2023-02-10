@@ -147,7 +147,7 @@ func (c WechatNotifyHttpClient) SendNotifyAsPlainText(ctx context.Context, messa
 	//	"errmsg": "invalid message type, hint: [1669361230365202485965774], from ip: 112.95.175.146, more info at https://open.work.weixin.qq.com/devtool/query?e=40008"
 	// }
 	respModel := struct {
-		Errcode string `json:"errcode"`
+		Errcode int    `json:"errcode"`
 		Errmsg  string `json:"errmsg"`
 	}{}
 
@@ -156,7 +156,7 @@ func (c WechatNotifyHttpClient) SendNotifyAsPlainText(ctx context.Context, messa
 		return err
 	}
 
-	if respModel.Errcode != "ok" {
+	if respModel.Errmsg != "ok" {
 		return fmt.Errorf("wechat-notify-err, err-msg:%v", respModel.Errmsg)
 	}
 	return nil

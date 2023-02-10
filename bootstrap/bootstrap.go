@@ -56,6 +56,7 @@ func Run() {
 
 	// 定时检测 bot 的在线状态, 当离线时, 通过企业微信进行告警
 	go func() {
+		startedAt := time.Now()
 		notified := false
 		wechatWorkClient := wechat_notify_http_client.NewWechatNotifyHttpClient(config.LoadConfig().WechatWorkSendKey)
 		for {
@@ -64,11 +65,13 @@ func Run() {
 			}
 			time.Sleep(time.Second * 10)
 			if bot.Alive() {
+				lifeSpanInMinutes := time.Now().Sub(startedAt).Minutes()
+				logger.Info(fmt.Sprintf("service has been alive for %f minutes", lifeSpanInMinutes))
 				continue
 			} else {
 				err := wechatWorkClient.SendNotifyAsPlainText(context.Background(), "coolseven@aliyun, wechat-gpt is dead!")
 				if err != nil {
-					logger.Info("调用企业微信告警失败", err.Error())
+					logger.Info(fmt.Sprintf("调用企业微信告警失败: %s", err.Error()))
 				}
 				notified = true
 				return
@@ -80,15 +83,15 @@ func Run() {
 	wechatWorkClient := wechat_notify_http_client.NewWechatNotifyHttpClient(config.LoadConfig().WechatWorkSendKey)
 	err = wechatWorkClient.SendNotifyAsPlainText(context.Background(), "coolseven@aliyun, wechat-gpt has started!")
 	if err != nil {
-		logger.Info("调用企业微信告警失败", err.Error())
+		logger.Info(fmt.Sprintf("调用企业微信告警失败: %s", err.Error()))
 	}
-	
+
 	// 阻塞主goroutine, 直到发生异常或者用户主动退出
 	logger.Info("service started...")
 	bot.Block()
 
 	err = wechatWorkClient.SendNotifyAsPlainText(context.Background(), "coolseven@aliyun, wechat-gpt is dead!")
 	if err != nil {
-		logger.Info("调用企业微信告警失败", err.Error())
+		logger.Info(fmt.Sprintf("调用企业微信告警失败: %s", err.Error()))
 	}
 }
