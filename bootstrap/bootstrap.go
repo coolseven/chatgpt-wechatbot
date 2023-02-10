@@ -1,12 +1,15 @@
 package bootstrap
 
 import (
+	"context"
 	"fmt"
 	"github.com/coolseven/wechatbot-chatgpt/config"
 	"github.com/coolseven/wechatbot-chatgpt/handlers"
 	"github.com/coolseven/wechatbot-chatgpt/pkg/logger"
+	"github.com/coolseven/wechatbot-chatgpt/pkg/wechat_notify_http_client"
 	"github.com/eatmoreapple/openwechat"
 	"io"
+	"time"
 )
 
 func Run() {
@@ -48,6 +51,28 @@ func Run() {
 		logger.Warning(fmt.Sprintf("login error: %v ", err))
 		return
 	}
+
+	// 定时检测 bot 的在线状态, 当离线时, 通过企业微信进行告警
+	go func() {
+		notified := false
+		wechatWorkClient := wechat_notify_http_client.NewWechatNotifyHttpClient(config.LoadConfig().WechatWorkSendKey)
+		for {
+			if notified {
+				return
+			}
+			time.Sleep(time.Second * 10)
+			if bot.Alive() {
+				continue
+			} else {
+				err := wechatWorkClient.SendNotifyAsPlainText(context.Background(), "coolseven@aliyun, wechat-gpt is dead!")
+				if err != nil {
+					logger.Info("调用企业微信告警失败", err.Error())
+				}
+				notified = true
+				return
+			}
+		}
+	}()
 
 	// 阻塞主goroutine, 直到发生异常或者用户主动退出
 	bot.Block()

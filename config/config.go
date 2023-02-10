@@ -31,6 +31,8 @@ type Configuration struct {
 	SessionClearToken string `json:"session_clear_token"`
 	// 设备id
 	DeviceId string `json:"device_id"`
+	// 企业微信告警的 sendKey
+	WechatWorkSendKey string `json:"wechat_work_send_key"`
 }
 
 var config *Configuration
@@ -48,6 +50,7 @@ func LoadConfig() *Configuration {
 			Temperature:       0.9,
 			SessionClearToken: "下一个问题",
 			DeviceId:          "",
+			WechatWorkSendKey: "",
 		}
 
 		// 判断配置文件是否存在，存在直接JSON读取
@@ -76,6 +79,7 @@ func LoadConfig() *Configuration {
 		ReplyPrefix := os.Getenv("REPLY_PREFIX")
 		SessionClearToken := os.Getenv("SESSION_CLEAR_TOKEN")
 		DeviceId := os.Getenv("DEVICE_ID")
+		WechatWorkSendKey := os.Getenv("WechatWorkSendKey")
 		if ApiKey != "" {
 			config.ApiKey = ApiKey
 		}
@@ -117,6 +121,9 @@ func LoadConfig() *Configuration {
 		}
 		if DeviceId != "" {
 			config.DeviceId = DeviceId
+		}
+		if WechatWorkSendKey != "" {
+			config.WechatWorkSendKey = WechatWorkSendKey
 		}
 
 	})

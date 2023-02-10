@@ -7,5 +7,6 @@
   "temperature": 1,
   "reply_prefix": "来自机器人回复：",
   "session_clear_token": "清空会话",
-  "device_id": ""
+  "device_id": "",
+  "wechat_work_send_key": ""
 }
