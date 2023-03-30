@@ -51,6 +51,10 @@ func Completions(input string) (string, error) {
 	cfg := config.LoadConfig()
 
 	c := gogpt.NewClient(cfg.ApiKey)
+	if cfg.ApiProxyHost != "" {
+		c.BaseURL = cfg.ApiProxyHost
+	}
+
 	ctx := context.Background()
 
 	req := gogpt.CompletionRequest{
@@ -77,6 +81,10 @@ func CreateImageMedia(imageDescription string, imageCount int) ([]io.Reader, err
 	cfg := config.LoadConfig()
 
 	c := gogpt.NewClient(cfg.ApiKey)
+	if cfg.ApiProxyHost != "" {
+		c.BaseURL = cfg.ApiProxyHost
+	}
+
 	ctx := context.Background()
 
 	req := gogpt.ImageRequest{

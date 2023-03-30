@@ -33,6 +33,8 @@ type Configuration struct {
 	DeviceId string `json:"device_id"`
 	// 企业微信告警的 sendKey
 	WechatWorkSendKey string `json:"wechat_work_send_key"`
+	// openai 的 api proxy 域名
+	ApiProxyHost string `json:"api_proxy_host"`
 }
 
 var config *Configuration
@@ -51,6 +53,7 @@ func LoadConfig() *Configuration {
 			SessionClearToken: "下一个问题",
 			DeviceId:          "",
 			WechatWorkSendKey: "",
+			ApiProxyHost: "",
 		}
 
 		// 判断配置文件是否存在，存在直接JSON读取
@@ -80,6 +83,7 @@ func LoadConfig() *Configuration {
 		SessionClearToken := os.Getenv("SESSION_CLEAR_TOKEN")
 		DeviceId := os.Getenv("DEVICE_ID")
 		WechatWorkSendKey := os.Getenv("WechatWorkSendKey")
+		ApiProxyHost := os.Getenv("ApiProxyHost")
 		if ApiKey != "" {
 			config.ApiKey = ApiKey
 		}
@@ -124,6 +128,9 @@ func LoadConfig() *Configuration {
 		}
 		if WechatWorkSendKey != "" {
 			config.WechatWorkSendKey = WechatWorkSendKey
+		}
+		if ApiProxyHost != "" {
+			config.ApiProxyHost = ApiProxyHost
 		}
 
 	})
